@@ -5,24 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="description" content="Al-Noor School — Student Fee Dashboard">
-
     <title>My Dashboard — Al-Noor School Fee Management</title>
-
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <style>
         body { font-family: 'Inter', sans-serif; background: #FBF3F5; color: #3A2E36; }
-
         #sidebar { background: #5C2A3E; }
         .sidebar-brand { border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-logo { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); }
-
         .nav-link {
             color: rgba(255,255,255,0.75);
             transition: all 0.18s ease;
@@ -30,18 +24,13 @@
         }
         .nav-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
         .nav-link.active { background: #C98A9E; color: #fff; box-shadow: 0 4px 14px rgba(92, 42, 62, 0.4); }
-
         .main-header { background: #fff; border-bottom: 1px solid #F2D5E0; }
-
         .stat-card { background: #fff; border-radius: 1rem; border: 1px solid; box-shadow: 0 2px 8px rgba(92,64,86,0.07); }
-
         .info-card { background: #fff; border-radius: 1rem; border: 1px solid #F2D5E0; box-shadow: 0 2px 8px rgba(92,64,86,0.07); }
-
         .sidebar-user-card { background: rgba(255,255,255,0.08); border-radius: 0.75rem; }
         .sidebar-avatar { background: #C98A9E; color: #5C2A3E; }
         .logout-btn { color: #D9A99A; transition: all 0.18s ease; border-radius: 0.75rem; }
         .logout-btn:hover { background: rgba(244, 160, 160, 0.2); color: #F4A0A0; }
-
         @media print {
             #sidebar, #mobile-sidebar-backdrop, .no-print { display: none !important; }
         }
@@ -55,7 +44,6 @@
 
     <!-- Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform -translate-x-full transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex md:h-screen">
-        <!-- Brand -->
         <div class="sidebar-brand flex h-16 items-center px-6 gap-3">
             <div class="sidebar-logo h-10 w-10 flex items-center justify-center rounded-xl text-white flex-shrink-0">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -68,7 +56,6 @@
             </div>
         </div>
 
-        <!-- Nav -->
         <nav class="flex-1 space-y-1 px-4 py-6 overflow-y-auto">
             <a href="{{ route('student.dashboard') }}" class="nav-link active flex items-center gap-3 px-4 py-3 text-sm font-semibold">
                 <span class="text-lg">🏠</span>
@@ -76,7 +63,6 @@
             </a>
         </nav>
 
-        <!-- Bottom -->
         <div class="p-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
             <div class="sidebar-user-card flex items-center gap-3 px-3 py-3 mb-3 overflow-hidden">
                 <div class="sidebar-avatar h-9 w-9 flex-shrink-0 rounded-full flex items-center justify-center font-bold text-sm">
@@ -101,7 +87,6 @@
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col md:h-screen md:overflow-y-auto">
-        <!-- Top Navbar -->
         <header class="main-header flex h-16 items-center justify-between px-6">
             <div class="flex items-center gap-4">
                 <button type="button" class="md:hidden" style="color: #7A6B72;" onclick="toggleSidebar()">
@@ -122,10 +107,9 @@
             </div>
         </header>
 
-        <!-- Page Content -->
         <main class="flex-1 p-6 md:p-8 space-y-8" style="background: #FBF3F5;">
 
-            <!-- Section 1: Student Info Card -->
+            <!-- Student Info -->
             <div class="info-card p-6">
                 <div class="flex items-center gap-3 mb-5">
                     <div class="h-10 w-10 rounded-xl flex items-center justify-center text-xl" style="background: #F9EDF5;">🎓</div>
@@ -158,34 +142,30 @@
                 </div>
             </div>
 
-            <!-- Section 2: Fee Summary Cards -->
+            <!-- Fee Summary Cards -->
             @php
-                $feeDue       = $account ? ($account->total_fee_due ?? 0) : 0;
-                $totalPaid    = $transactions->where('transaction_type', 'payment')->sum('amount');
-                $totalFines   = $transactions->where('transaction_type', 'fine')->sum('amount');
-                $totalConc    = $transactions->where('transaction_type', 'concession')->sum('amount');
-                $outstanding  = $account ? ($account->outstanding_balance ?? max(0, $feeDue - $totalPaid + $totalFines - $totalConc)) : 0;
+                $feeDue     = $account->total_fee_due ?? 0;
+                $totalPaid  = $account->total_payment_collected ?? 0;
+                $totalConc  = $account->total_concession_applied ?? 0;
+                $totalFines = $account->levied_fines ?? 0;
+                $outstanding = max(0, $feeDue - $totalPaid - $totalConc + $totalFines);
             @endphp
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <!-- Total Fee Due -->
                 <div class="stat-card p-5" style="border-color: #C98A9E;">
                     <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #5C2A3E;">Total Fee Due</p>
                     <p class="text-2xl font-black" style="color: #3A2E36;">Rs. {{ number_format($account->total_fee_due ?? 0, 2) }}</p>
                     <div class="h-1 w-10 rounded-full mt-3" style="background: #C98A9E;"></div>
                 </div>
-                <!-- Total Paid -->
                 <div class="stat-card p-5" style="border-color: #A9C9A4;">
                     <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #4A7A45;">Total Paid</p>
                     <p class="text-2xl font-black" style="color: #3A2E36;">Rs. {{ number_format($totalPaid, 2) }}</p>
                     <div class="h-1 w-10 rounded-full mt-3" style="background: #A9C9A4;"></div>
                 </div>
-                <!-- Outstanding Balance -->
                 <div class="stat-card p-5" style="border-color: #F4A0A0;">
                     <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #8B3A3A;">Outstanding Balance</p>
-                    <p class="text-2xl font-black" style="color: #3A2E36;">Rs. {{ number_format($account->outstanding_balance ?? 0, 2) }}</p>
+                    <p class="text-2xl font-black" style="color: #3A2E36;">Rs. {{ number_format($outstanding, 2) }}</p>
                     <div class="h-1 w-10 rounded-full mt-3" style="background: #F4A0A0;"></div>
                 </div>
-                <!-- Concessions -->
                 <div class="stat-card p-5" style="border-color: #D9A99A;">
                     <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color: #5C2A3E;">Concessions Applied</p>
                     <p class="text-2xl font-black" style="color: #3A2E36;">Rs. {{ number_format($totalConc, 2) }}</p>
@@ -193,13 +173,12 @@
                 </div>
             </div>
 
-            <!-- Section 3: Transactions Table -->
+            <!-- Transactions Table -->
             <div id="my-transactions" class="info-card overflow-hidden">
                 <div class="flex items-center gap-3 px-6 py-5" style="border-bottom: 1px solid #F2D5E0;">
                     <div class="h-8 w-8 rounded-lg flex items-center justify-center text-base" style="background: #F9EDF5;">🧾</div>
                     <h3 class="text-base font-bold" style="color: #3A2E36;">My Transactions</h3>
                 </div>
-
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>

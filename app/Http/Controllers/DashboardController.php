@@ -17,8 +17,10 @@ class DashboardController extends Controller
 
             $totalCollected = Transaction::where('transaction_type', 'payment')->sum('amount');
 
-            $totalOutstanding = StudentAccount::selectRaw('SUM(total_fee_due - total_payment_collected) as outstanding')
-                ->value('outstanding') ?? 0;
+            // ✅ Fixed outstanding formula – includes concessions and fines
+            $totalOutstanding = StudentAccount::selectRaw(
+                'SUM(total_fee_due - total_payment_collected - total_concession_applied + levied_fines) as outstanding'
+            )->value('outstanding') ?? 0;
 
             $totalConcessions = StudentAccount::sum('total_concession_applied');
 
